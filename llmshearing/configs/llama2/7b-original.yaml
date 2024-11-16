@@ -1,6 +1,6 @@
-data_local: /home/ubuntu/az1-fs1/llm_data/for_prune
+data_local: /scratch/gpfs/mengzhou/space2/examples/examples/llm/llama-dedup
 data_remote: # If blank, files must be present in data_local
-tokenizer_name: /home/ubuntu/LLM-Shearing/models/Llama-2-7b-hf
+tokenizer_name: /projects/DANQIC/mengzhou/LLaMA2/hf-7B 
 max_seq_len: 4096
 global_seed: 17
 
@@ -9,7 +9,7 @@ run_name: # If left blank, will be read from env var $COMPOSER_RUN_NAME
 
 model:
   name: mosaic_llama2_7b 
-  path: /home/ubuntu/LLM-Shearing/models/Llama-2-7b-composer/state_dict.pt
+  path: /projects/DANQIC/mengzhou/LLaMA2/mosaic-7B/state_dict.pt
   init_device: "cpu" 
   tokenizer_name: ${tokenizer_name}
   d_model: 4096

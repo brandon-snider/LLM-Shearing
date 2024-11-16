@@ -459,7 +459,7 @@ class PythiaAttention(nn.Module):
                 query,
                 key,
                 value,
-                self.n_heads,
+                # self.n_heads,
                 softmax_scale=self.softmax_scale,
                 attn_bias=attn_bias,
                 query_padding_mask=query_padding_mask,

@@ -31,6 +31,7 @@ from llmshearing.callbacks.dynamic_loading_callback import \
 from llmshearing.callbacks.pruning_callback import PruningCallback
 from llmshearing.datasets.load_text_dataloader import build_text_dataloader
 from llmshearing.models.model_registry import COMPOSER_MODEL_REGISTRY
+import streaming.base.util
 
 streaming.base.util.clean_stale_shared_memory()
 
@@ -246,6 +247,8 @@ def main(cfg):
         build_algorithm(name, algorithm_cfg)
         for name, algorithm_cfg in (cfg.get('algorithms') or {}).items()
     ]
+
+    print("microbatch size: ", cfg.device_train_microbatch_size)
 
     # Build the Trainer
     print('Building trainer...')

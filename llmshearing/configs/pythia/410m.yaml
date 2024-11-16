@@ -1,40 +1,43 @@
 data_local: /home/ubuntu/az1-fs1/llm_data/for_prune
 data_remote: # If blank, files must be present in data_local
-tokenizer_name: /home/ubuntu/LLM-Shearing/models/Llama-2-7b-hf
-max_seq_len: 4096
+tokenizer_name: /home/ubuntu/LLM-Shearing/models/pythia-410m
+max_seq_len: 2048
 global_seed: 17
 
 # Run Name
 run_name: # If left blank, will be read from env var $COMPOSER_RUN_NAME
 
 model:
-  name: mosaic_llama2_7b 
-  path: /home/ubuntu/LLM-Shearing/models/Llama-2-7b-composer/state_dict.pt
+  name: mosaic_pythia_410m 
+  path: /home/ubuntu/LLM-Shearing/models/pythia-410m-composer/state_dict.pt
   init_device: "cpu" 
   tokenizer_name: ${tokenizer_name}
-  d_model: 4096
-  n_heads: 32
-  n_layers: 32
-  intermediate_size: 11008
+  d_model: 1024
+  n_heads: 16
+  n_layers: 24
+  intermediate_size: 4096
   max_seq_len: ${max_seq_len}
-  vocab_size: 32000
+  vocab_size: 50304
   init_std: 0.02
+  rotary_pct: 0.25
+  use_parallel_residual: true
+  layer_norm_eps: 1e-5
   attn_pdrop: 0.0
   resid_pdrop: 0.0
   emb_pdrop: 0.0
   attn_impl: flash
-  rms_norm_eps: 1e-5
+  rotary_emb_base: 10000
   l0_module:
     start_sparsity: 0.0
     target_sparsity: 0.5
     pruning_modules: ["head", "head_layer", "mlp", "intermediate"]
     lagrangian_warmup_steps: 320ba 
     target_model:
-      d_model: 2560
-      n_layers: 32
-      n_heads: 20 
-      intermediate_size: 6912 
-      vocab_size: 32000
+      d_model: 768
+      n_layers: 12
+      n_heads: 12 
+      intermediate_size: 3072 
+      vocab_size: 50304
 
 # Tokenizer
 tokenizer:
