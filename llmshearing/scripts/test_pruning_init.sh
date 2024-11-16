@@ -3,7 +3,7 @@
 # Please specify the working folder
 PROJ_DIR=/home/ubuntu/LLM-Shearing
 LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
-DATA_DIR=/home/ubuntu/az1-fs1/llm_data/for_prune
+DATA_DIR=/home/ubuntu/us-south-2-1/llm_data/for_prune
 OUTPUT_DIR=${PROJ_DIR}/out/test_pruning_init
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 MODEL_PATH=${PROJ_DIR}/models/Llama-2-7b-composer
@@ -22,15 +22,15 @@ data_local=${DATA_DIR}
 
 # basic setup
 max_seq_len=4096
-device_train_microbatch_size=1
-global_train_batch_size=8
-device_eval_batch_size=1
+device_train_microbatch_size=4
+global_train_batch_size=32
+device_eval_batch_size=8
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters
 max_duration=10ba # 0.01B tokens
 save_interval=10ba # save in the end
-t_warmup=1ba # 10% learning rate warmup 
+t_warmup=320ba # 10% learning rate warmup 
 
 # dynamic loading setup
 dynamic=True
@@ -53,7 +53,7 @@ eval_interval=1ba # eval every 1 batch and update the loading proportion
 
 # pruning setup
 lag_lr=1.0 # learning rate or l0_module
-lagr_warmup=2ba # 20% sparsity warmup
+lagr_warmup=640ba # 20% sparsity warmup
 if [[ $to_model == 1.3b ]]; then
     target_d_model=2048; target_n_heads=16; target_n_layers=24; target_intermediate_size=5504
 elif [[ $to_model == 2.7b ]]; then

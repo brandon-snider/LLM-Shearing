@@ -1,4 +1,4 @@
-data_local: /home/ubuntu/az1-fs1/llm_data/for_prune
+data_local: /home/ubuntu/us-south-2-1/llm_data/for_prune
 data_remote: # If blank, files must be present in data_local
 tokenizer_name: /home/ubuntu/LLM-Shearing/models/Llama-2-7b-hf
 max_seq_len: 4096
