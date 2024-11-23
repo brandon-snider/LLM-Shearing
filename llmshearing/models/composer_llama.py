@@ -271,6 +271,17 @@ class LlamaModel(nn.Module):
             zs_block = self.get_zs_block(zs, i)
             block.prune_params(zs_block)
         
+    # zs is a dictionary with keys for each type of unit (e.g. head, layer, etc.)
+    # This function extracts the relevant zs for the given block (a.k.a layer)
+    # Returns a dictionary with the same keys, where each value is the zs for the given block
+    # Example: zs = {
+    #   "head_z": torch.tensor([[0.1, 0.2, 0.3, 0.4],  # layer 0 heads
+    #                          [0.5, 0.6, 0.7, 0.8],  # layer 1 heads
+    #                          [0.9, 0.1, 0.2, 0.3]]), # layer 2 heads
+    #   "layer_z": [0.5, 0.6, 0.7]
+    # }
+    # block_idx = 1
+    # get_zs_block(zs, 1) -> {"head_z": tensor([0.5, 0.6, 0.7, 0.8]), "layer_z": 0.6}
     def get_zs_block(self, zs, block_idx):
         zs_block = {}
         if zs is not None:
@@ -645,9 +656,11 @@ class LlamaAttention(nn.Module):
                 
         output = self.out_proj(context)
         
+        # Apply layer-level mask
         if head_layer_z is not None:
             output *= head_layer_z
         
+        # Apply hidden dimension mask
         if hidden_z is not None:
             output *= hidden_z
             
@@ -747,6 +760,7 @@ def check_valid_inputs(*tensors, valid_dtypes=[torch.float16, torch.bfloat16]):
         if not tensor.is_cuda:
             raise TypeError(f'Inputs must be cuda tensors ({tensor.is_cuda=}).')
 
+# head_z is a tensor with one entry per head for the layer on which this is applied
 def normal_attn_fn(
     query,
     key, 
@@ -828,6 +842,7 @@ def flash_attn_fn(
         causal=is_causal,
         return_attn_probs=needs_weights)
 
+    # Apply head-level mask
     if head_z is not None:
         output_unpad = output_unpad * head_z # 1 * h * 1
     output = bert_padding.pad_input(rearrange(output_unpad, 'nnz h d -> nnz (h d)'), indices_q, batch_size, seqlen)

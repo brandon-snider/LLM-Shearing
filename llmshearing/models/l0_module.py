@@ -42,13 +42,16 @@ class Mask(nn.Module):
         
     def param_init_fn(self, module):
         """ Initialize the parameters for masking variables. """
-        mean = math.log(1 - self.droprate_init) - math.log(self.droprate_init)
+        # mean = math.log(1 - self.droprate_init) - math.log(self.droprate_init)
+        # mean = 5
+        # if isinstance(module, nn.Parameter):
+        #     module.data.normal_(mean, 1e-2)
+        # else:
+        #     for tensor in module.parameters():
+        #         tensor.data.normal_(mean, 1e-2)
+        
         mean = 5
-        if isinstance(module, nn.Parameter):
-            module.data.normal_(mean, 1e-2)
-        else:
-            for tensor in module.parameters():
-                tensor.data.normal_(mean, 1e-2)
+        module.data.normal_(mean, 1e-2)
         
     def initialize_mask(self, mask_shape: List):
         """ Initialize the parameters for masking variables. """
@@ -64,6 +67,7 @@ class Mask(nn.Module):
         logits = math.log(xn) - math.log(1 - xn)
         return torch.sigmoid(logits * self.temperature - z_loga).clamp(min=epsilon, max=1 - epsilon)
     
+    # Uniform random numberse between "almost 0" and "almost 1"
     def get_eps(self, size: List):
         """Uniform random numbers for the concrete distribution"""
         eps = torch.FloatTensor(size).uniform_(epsilon, 1-epsilon)
@@ -71,9 +75,16 @@ class Mask(nn.Module):
         return eps
     
     def quantile_concrete(self, eps: torch.Tensor):
+        # Referred to as s in the paper
         y = torch.sigmoid((torch.log(eps) - torch.log(1 - eps) + self.z_loga) / self.temperature)
+
+        # Referred to as \bar s in the paper
         return y * (limit_b - limit_a) + limit_a
     
+    # Sample from the distribution parameterized by z_loga
+    # Recall: a mask is a tensor of log_alphas for a prunable module type (e.g. head, layer, etc.)
+    # Each entry in the mask is a log_alpha for a unit of the prunable module type (e.g. a head, a layer, etc.)
+    # The mask is of shape [num_layers, num_heads] for heads, [num_layers] for layers, etc.
     def sample_z(self):
         eps = self.get_eps(torch.FloatTensor(*self.z_loga.shape)).to(self.z_loga.device)
         z = self.quantile_concrete(eps)
@@ -102,6 +113,8 @@ class Mask(nn.Module):
                 soft_mask[indices] = 0.
         return soft_mask
     
+    # During eval and post-pruning processing, use the deterministic mask
+    # Takes the mean of the distribution parameterized by z_logas
     def deterministic_z(self):
         if self.z_loga.ndim == 1:
             z = self._deterministic_z(self.z_loga).reshape(*self.mask_output_shape)
@@ -256,6 +269,7 @@ class L0Module(nn.Module):
                            eval_target_model=self.eval_target_model)
         self.masks["head"] = head_mask 
 
+    # Not used in current implementation
     def initialize_qk_head_dim(self): # only campatible when target model info is available
         mask_shape = [self.base_model_info.num_layers, self.base_model_info.num_attention_heads, self.base_model_info.dim_per_head]
         num_params_per_mask = 2 * self.base_model_info.hidden_size
@@ -277,6 +291,7 @@ class L0Module(nn.Module):
         self.masks["qk_head_dim"] = qk_head_dim 
           
           
+    # Not used in current implementation
     def initialize_vo_head_dim(self): # only campatible when target model info is available
         mask_shape = [self.base_model_info.num_layers, self.base_model_info.num_attention_heads, self.base_model_info.dim_per_head]
         num_params_per_mask = 2 * self.base_model_info.hidden_size
@@ -512,6 +527,7 @@ class L0Module(nn.Module):
         
         zs = {f"{pruning_module}_z": [] for pruning_module in self.pruning_modules}
         
+        # Something like — pruning layers means pruning the mlp and all heads
         if "layer" in self.pruning_modules:
             zs.pop("layer_z")
             zs["mlp_z"] = []

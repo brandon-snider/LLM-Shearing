@@ -84,8 +84,8 @@ def build_optimizer(model: torch.nn.Module, name: str,
     """ 
         build optimizer that consists of three groups of parameters:
         - main_model_params: parameters of the main model
-        - l0_module_params: parameters of the l0 module
-        - lagrange_params: parameters of the lagrange multipliers
+        - l0_module_params: parameters of the l0 module (the log alphas)
+        - lagrange_params: parameters of the lagrange multipliers (the lambdas)
     """    
     param_groups = {}
     main_model_params = [p for n, p in model.named_parameters() if "l0_module" not in n]
