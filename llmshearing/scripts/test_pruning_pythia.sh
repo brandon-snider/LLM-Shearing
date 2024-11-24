@@ -1,19 +1,19 @@
-# pruning llama2 7b -> 3b or 1.3b
+# pruning pythia 14m -> 7m 
 
 # Please specify the working folder
-PROJ_DIR=/home/ubuntu/LLM-Shearing
+PROJ_DIR=/Users/brandon/Documents/College/q4-fall-24/cs-229/project/LLM-Shearing
 LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
-DATA_DIR=/home/ubuntu/az1-fs1/llm_data/for_prune
+DATA_DIR=${PROJ_DIR}/data/mds/for_prune
 OUTPUT_DIR=${PROJ_DIR}/out/test_pruning_pythia
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
-MODEL_PATH=${PROJ_DIR}/models/pythia-410m-composer
+MODEL_PATH=${PROJ_DIR}/models/pythia-14m-composer
 
 # Specify $PROJ_DIR in scripts/launch.sh and scripts/srun_launch.sh if using slurm
 
-test=True
+test=False
 
-from_model=410m # source model size
-to_model=160m # target model size
+from_model=14m # source model size
+to_model=6.6m # target model size
 config_file=${PROJ_DIR}/llmshearing/configs/pythia/${from_model}.yaml
 path=$MODEL_PATH/state_dict.pt
 
@@ -22,48 +22,37 @@ data_local=${DATA_DIR}
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=4
-global_train_batch_size=32
-device_eval_batch_size=8
+device_train_microbatch_size=1
+global_train_batch_size=4
+device_eval_batch_size=1
 
 # learning setup
-lr=1e-4 # learning rate for the main parameters
-max_duration=10ba # 0.01B tokens
+lr=3e-4 # learning rate for the main parameters
+max_duration=10ba # 82k tokens
 save_interval=10ba # save in the end
-t_warmup=320ba # 10% learning rate warmup 
+t_warmup=10ba # learning rate warmup (typically set to 10% of max_duration)
 
 # dynamic loading setup
 dynamic=True
 set_names=[cc,github,book,stackexchange,wiki,arxiv,c4-rp] # domain names
 proportion=[0.67,0.045,0.045,0.02,0.045,0.025,0.15] # initial proportion of RP, make sure that the sum(proportion) = 1
+
 # doremi: update weights with exponential descent
 # constant: keep the weights constant
 update_type=doremi 
-if [[ $to_model == 1.3b ]]; then
-    target_loss=[1.9643,0.7459,2.1393,1.6117,1.7590,1.4449,2.1251] # 1.3b predicted loss from scaling law
-elif [[ $to_model == 3b ]]; then
-    target_loss=[1.8712,0.6883,2.0325,1.5353,1.6297,1.3560,2.0328] # 2.7b predicted loss from scaling law
-elif [[ $to_model == 370m ]]; then
-    target_loss=[2.1401,0.8694,2.3625,1.7791,2.047,1.6637,2.3139] # 370m predicted loss from scaling law
-elif [[ $to_model == 160m ]]; then
-    target_loss=[2.2166,0.9236,2.4466,1.8416,2.1316,1.7216,2.4066] # 160m predicted loss from scaling law
+if [[ $to_model == 6.6m ]]; then
+    target_loss=[4.26942,2.17134,4.2438,3.14441,4.45089,2.96644,4.52761] # Loss on eval set of 14m model
 fi
 eval_split_name=eval_merge # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
-eval_interval=1ba # eval every 1 batch and update the loading proportion
+eval_interval=1ba # eval at this interval and update the loading proportion
 
 
 # pruning setup
 lag_lr=1.0 # learning rate or l0_module
-lagr_warmup=640ba # 20% sparsity warmup
-if [[ $to_model == 1.3b ]]; then
-    target_d_model=2048; target_n_heads=16; target_n_layers=24; target_intermediate_size=5504
-elif [[ $to_model == 2.7b ]]; then
-    target_d_model=2560; target_n_heads=20; target_n_layers=32; target_intermediate_size=6912
-elif [[ $to_model == 370m ]]; then
-    target_d_model=1024; target_n_heads=8; target_n_layers=24; target_intermediate_size=2816
-elif [[ $to_model == 160m ]]; then
-    target_d_model=768; target_n_heads=12; target_n_layers=12; target_intermediate_size=3072
+lagr_warmup=10ba # sparsity warmup (typically set to 20% of max_duration)
+if [[ $to_model == 6.6m ]]; then
+    target_d_model=64; target_n_heads=3; target_n_layers=4; target_intermediate_size=256
 fi
 
 # save directroy
@@ -85,7 +74,9 @@ if [[ $test == True ]]; then t=00-01:00:00; else t=01-00:00:00; fi
 #     --time $t \
 #     -p pli \
     # $LAUNCH_SCRIPT \
-    composer $TRAIN_SCRIPT \
+    composer \
+    -n 1 \
+    $TRAIN_SCRIPT \
     $config_file \
     run_name=${run_name} \
     data_local=${data_local} \
@@ -117,6 +108,6 @@ if [[ $test == True ]]; then t=00-01:00:00; else t=01-00:00:00; fi
     callbacks.data_loading.update_type=${update_type} \
     callbacks.data_loading.target_loss=${target_loss} \
     train_loader.num_workers=0 \
-    train_loader.prefetch_factor=null \
+    train_loader.prefetch_factor=None \
     train_loader.persistent_workers=false \
     autoresume=false
