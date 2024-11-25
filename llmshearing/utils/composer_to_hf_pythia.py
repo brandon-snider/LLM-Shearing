@@ -2,6 +2,7 @@ import sys
 import torch
 from omegaconf import OmegaConf as om
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+import os
 
 """The file contains the util functions to convert the composer model to the huggingface model or vice versa."""
 
@@ -76,6 +77,7 @@ def save_hf_to_composer(hf_model_name_or_path, output_path):
         else:
             # rotary will be ignored
             print(f"key {key} not found in keymap")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     torch.save(composer_state_dict, output_path)
     print(f"saved composer model to {output_path}")
 
@@ -103,12 +105,13 @@ def save_composer_to_hf(composer_model_path, output_path=None, model_config: om 
         weights = weights["state"]["model"]
     num_layers = get_layer_num_from_weights(weights)
     keymap = get_key_map_from_composer_to_hf(num_layers)
+
     hf_weights = {keymap[key]: weights[key] for key in weights if "rotary" not in key}
     config, tokenizer_nanme = construct_hf_config(model_config)
 
     model = AutoModelForCausalLM.from_config(config)
     model.load_state_dict(hf_weights, strict=False)
-    model = model.bfloat16()
+    model = model.half()
     model.save_pretrained(output_path, dtype=torch.float16)
 
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_nanme)

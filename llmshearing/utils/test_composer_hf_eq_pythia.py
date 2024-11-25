@@ -11,17 +11,60 @@ def construct_example_cfg(model_size, path=None, add_l0_module=False):
         cfg = om.create(
             {
                 "name": "pythia-14m",
-                "init_device": "cpu",
-                "d_model": 128,  # hidden_size in config
-                "n_heads": 4,  # num_attention_heads
-                "n_layers": 6,  # num_hidden_layers
+                "d_model": 128,
+                "n_heads": 4,
+                "n_layers": 6,
                 "intermediate_size": 512,
-                "max_seq_len": 2048,  # max_position_embeddings
-                "vocab_size": 50304,
-                "init_std": 0.02,  # initializer_range
-                "rotary_pct": 0.25,
-                "use_parallel_residual": True,
-                "layer_norm_eps": 1e-5,
+            }
+        )
+    elif model_size == "70m":
+        cfg = om.create(
+            {
+                "name": "pythia-70m",
+                "d_model": 512,
+                "n_heads": 8,
+                "n_layers": 6,
+                "intermediate_size": 2048,
+            }
+        )
+    elif model_size == "160m":
+        cfg = om.create(
+            {
+                "name": "pythia-160m",
+                "d_model": 768,
+                "n_heads": 12,
+                "n_layers": 12,
+                "intermediate_size": 3072,
+            }
+        )
+    elif model_size == "410m":
+        cfg = om.create(
+            {
+                "name": "pythia-410m",
+                "d_model": 1024,
+                "n_heads": 16,
+                "n_layers": 24,
+                "intermediate_size": 4096,
+            }
+        )
+    elif model_size == "410m-deduped":
+        cfg = om.create(
+            {
+                "name": "pythia-410m-deduped",
+                "d_model": 1024,
+                "n_heads": 16,
+                "n_layers": 24,
+                "intermediate_size": 4096,
+            }
+        )
+    elif model_size == "1.4b":
+        cfg = om.create(
+            {
+                "name": "pythia-1.4b",
+                "d_model": 2048,
+                "n_heads": 16,
+                "n_layers": 24,
+                "intermediate_size": 8192,
             }
         )
 
@@ -30,11 +73,18 @@ def construct_example_cfg(model_size, path=None, add_l0_module=False):
         cfg,
         om.create(
             {
+                "init_device": "cpu",
+                "init_std": 0.02,
+                "rotary_pct": 0.25,
+                "use_parallel_residual": True,
+                "layer_norm_eps": 1e-5,
                 "attn_pdrop": 0.0,
                 "resid_pdrop": 0.0,
                 "emb_pdrop": 0.0,
-                "attn_impl": "normal",
+                "attn_impl": "flash",
                 "rotary_emb_base": 10000,
+                "vocab_size": 50304,
+                "max_seq_len": 2048,
             }
         ),
     )
@@ -74,7 +124,6 @@ if __name__ == "__main__":
 
     # check if they have the same naming convention
     hf_model = AutoModelForCausalLM.from_pretrained(hf_pythia_path)
-    hf_loss = hf_model(input_ids, labels=input_ids).loss
 
     cfg = construct_example_cfg(model_size)
     composer_model = ComposerMosaicPythia(cfg)
@@ -86,7 +135,10 @@ if __name__ == "__main__":
         composer_model.half().cuda()
         hf_model.half().cuda()
 
-    logits1 = hf_model(input_ids, labels=input_ids).logits.mean()
-    logits2 = composer_model({"input_ids": input_ids})["logits"].mean()
+    hf_output = hf_model(input_ids, labels=input_ids)
+    composer_output = composer_model({"input_ids": input_ids})
+
+    logits1 = hf_output.logits.mean()
+    logits2 = composer_output["logits"].mean()
 
     test_two_matrix(logits1, logits2, "HF vs. Composer")

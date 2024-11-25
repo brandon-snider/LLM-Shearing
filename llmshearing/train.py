@@ -266,6 +266,9 @@ def main(cfg):
     # Callbacks
     callbacks = []
     data_loading_config = pop_config(cfg.callbacks, "data_loading")
+    print(
+        "train.py | data_loading_config.target_loss:  ${data_loading_config.target_loss}"
+    )
     if data_loading_config.dynamic:
         dl_callback = DynamicLoadingCallback(
             target_loss=data_loading_config.target_loss,
@@ -312,7 +315,7 @@ def main(cfg):
         precision=cfg.precision,
         algorithms=algorithms,
         device_train_microbatch_size=cfg.get("device_train_microbatch_size", "auto"),
-        fsdp_config=fsdp_config,  # type: ignore
+        fsdp_config=None,  # type: ignore
         save_folder=cfg.get("save_folder", None),
         save_interval=cfg.get("save_interval", "1000ba"),
         save_num_checkpoints_to_keep=cfg.get("save_num_checkpoints_to_keep", -1),
@@ -342,8 +345,10 @@ def main(cfg):
     print("Logging config...")
     log_config(cfg)
 
-    print("Exiting.")
-    return
+    # print("Evaluating...")
+    # trainer.eval()
+    # print("Done evaluating.")
+    # return
 
     if cfg.get("eval_first", False):
         trainer.eval()

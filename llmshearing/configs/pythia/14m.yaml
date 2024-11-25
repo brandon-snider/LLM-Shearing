@@ -1,4 +1,4 @@
-data_local: /Users/brandon/Documents/College/q4-fall-24/cs-229/project/LLM-Shearing/data/mds/for_prune
+data_local: /home/ubuntu/az1-fs1/LLM-Shearing/data-all/redpajama-1B/pythia/mds/for_prune
 data_remote: # If blank, files must be present in data_local
 tokenizer_name: EleutherAI/pythia-14m
 max_seq_len: 2048
@@ -9,7 +9,7 @@ run_name: # If left blank, will be read from env var $COMPOSER_RUN_NAME
 
 model:
   name: mosaic_pythia_14m
-  path: /Users/brandon/Documents/College/q4-fall-24/cs-229/project/LLM-Shearing/models/pythia-14m-composer/state_dict.pt
+  path: /home/ubuntu/LLM-Shearing/models/pythia-14m-composer/state_dict.pt
   init_device: "cpu"
   tokenizer_name: ${tokenizer_name}
   d_model: 128
@@ -25,7 +25,7 @@ model:
   attn_pdrop: 0.0
   resid_pdrop: 0.0
   emb_pdrop: 0.0
-  attn_impl: normal # TODO: change for CUDA
+  attn_impl: flash
   rotary_emb_base: 10000
   l0_module:
     start_sparsity: 0.0
@@ -35,7 +35,7 @@ model:
     target_model:
       d_model: 64
       n_layers: 4
-      n_heads: 3
+      n_heads: 4
       intermediate_size: 256
       vocab_size: 50304
 
@@ -59,9 +59,8 @@ train_loader:
     shuffle_seed: ${global_seed}
     is_uint16: true
   drop_last: true
-  num_workers: 0 # TODO: change for CUDA (8)
-  prefetch_factor: None # TODO: remove for CUDA
-  persistent_workers: false # TODO: remove for CUDA
+  num_workers: 8
+
 eval_loader:
   name: text
   dataset:
@@ -74,9 +73,7 @@ eval_loader:
     shuffle_seed: ${global_seed}
     is_uint16: true
   drop_last: false
-  num_workers: 0 # TODO: change for CUDA (8)
-  prefetch_factor: None # TODO: remove for CUDA
-  persistent_workers: false # TODO: remove for CUDA
+  num_workers: 8
 
 # Optimization
 scheduler:
@@ -108,15 +105,15 @@ global_train_batch_size: 32
 seed: ${global_seed}
 device_eval_batch_size: 8
 device_train_microbatch_size: 8
-precision: fp32 # TODO: change for CUDA
+precision: amp_fp16
 
-# FSDP # TODO: re-enable for CUDA
-# fsdp_config:
-#   sharding_strategy: FULL_SHARD
-#   mixed_precision: DEFAULT
-#   activation_checkpointing: true
-#   activation_cpu_offload: false
-#   verbose: false
+# FSDP
+fsdp_config:
+  sharding_strategy: FULL_SHARD
+  mixed_precision: DEFAULT
+  activation_checkpointing: true
+  activation_cpu_offload: false
+  verbose: false
 
 # Logging
 progress_bar: false

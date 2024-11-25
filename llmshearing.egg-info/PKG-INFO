@@ -4,10 +4,9 @@ Version: 0.1
 Summary: LLM Shearing
 Home-page: https://github.com/princeton-nlp/LLM-Shearing
 Author: Mengzhou Xia
-License: UNKNOWN
-Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 License-File: LICENSE
-
-UNKNOWN
-
+Requires-Dist: transformers==4.33.0
+Requires-Dist: composer==0.16.3
+Requires-Dist: llm-foundry==0.3.0
+Requires-Dist: fire

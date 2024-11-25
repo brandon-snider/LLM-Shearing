@@ -17,6 +17,8 @@ COMPOSER_MODEL_REGISTRY = {
     "mosaic_pythia_70m": ComposerMosaicPythia,
     "mosaic_pythia_160m": ComposerMosaicPythia,
     "mosaic_pythia_410m": ComposerMosaicPythia,
+    "mosaic_pythia_410m-deduped": ComposerMosaicPythia,
+    "mosaic_pythia_1b": ComposerMosaicPythia,
     "mosaic_pythia_1.4b": ComposerMosaicPythia,
     "mosaic_llama2_370m": ComposerMosaicLlama,
     "mosaic_llama2_1.3b": ComposerMosaicLlama,

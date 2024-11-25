@@ -1,4 +1,4 @@
-PROJ_DIR=/Users/brandon/Documents/College/q4-fall-24/cs-229/project/LLM-Shearing
+PROJ_DIR=$1
 
 python ${PROJ_DIR}/llmshearing/data/pythia/merge_data.py \
     --input_dir=${PROJ_DIR}/data/mds/eval \

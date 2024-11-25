@@ -1,34 +1,39 @@
 # pruning llama2 7b -> 3b or 1.3b
 
-PROJ_DIR=/scratch/gpfs/mengzhou/space2/LLM-Shearing
-DATA_DIR=/scratch/gpfs/mengzhou/llm_data/version5-uint16/500b_dedup_4k/for_ft
-OUTPUT_DIR=/scratch/gpfs/mengzhou/space2/out/test_retrainse
+PROJ_DIR=$1
+DATA_DIR=${PROJ_DIR}/data-all/redpajama-1B/pythia/mds/for_prune
+OUTPUT_DIR=${PROJ_DIR}/out/test_cpt_pythia
 LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 
 test=True
 
-model=1.3b # target model size
-config_file=${PROJ_DIR}/llmshearing/configs/llama2/${model}.yaml
-prune_run_name=llama2_7b_pruning_scaling_doremi_to${model}_sl4096
-path=${OUTPUT_DIR}/${prune_run_name}/pruned-latest-rank0.pt # path to the 
-# pruned model
-path=/scratch/gpfs/mengzhou/space2/out/test_round23_mosaicml_version5/llama2_7b_pruning_doremi_to1.3b_sl4096/changedkeys-ep0-ba3200-rank0.pt
+model=14m
+config_file=${PROJ_DIR}/llmshearing/configs/pythia/${model}.yaml
+
+# Name of the pruning run that produced this model
+prune_run_name=pythia_14m_unpruned
+
+# Path to the pruned model
+# path=${PROJ_DIR}/models/pythia-14m-composer/state_dict.pt
+path=${PROJ_DIR}/out/test_pruning_pythia/pythia_70m_pruning_scaling_doremi_to14m_sl2048/pruned-latest-rank0.pt
 
 # data setup
 data_local=${DATA_DIR}
 
 # basic setup
-max_seq_len=4096
+max_seq_len=2048
 device_train_microbatch_size=16
 global_train_batch_size=256
-device_eval_batch_size=8
+device_eval_batch_size=16
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters
-max_duration=48000ba # 50B tokens
-save_interval=3200ba # save every 3200ba
-t_warmup=1440ba # 3% learning rate warmup 
+max_duration=3200ba # 50B tokens
+# max_duration=48000ba # 50B tokens
+save_interval=400ba # save every 3200ba
+# save_interval=3200ba # save every 3200ba
+t_warmup=144ba # 3% learning rate warmup 
 
 # dynamic loading setup
 dynamic=True
@@ -37,17 +42,24 @@ proportion=[0.2192,0.0002,0.0791,0.0064,0.0096,0.001,0.6845] # final proportion 
 # doremi: update weights with exponential descent
 # constant: keep the weights constant
 update_type=doremi 
-if [[ $to_model == 1.3b ]]; then
-    target_loss=[1.9643,0.7459,2.1393,1.6117,1.7590,1.4449,2.1251] # 1.3b predicted loss from scaling law
-else
-    target_loss=[1.8712,0.6883,2.0325,1.5353,1.6297,1.3560,2.0328] # 2.7b predicted loss from scaling law
+if [[ $model == 6.6m ]]; then
+    target_loss=[4.26942,2.17134,4.2438,3.14441,4.45089,2.96644,4.52761] # Loss on eval set of 14m model
+elif [[ $model == 14m ]]; then
+    target_loss=[4.26942,2.17134,4.2438,3.14441,4.45089,2.96644,4.52761] # Loss on eval set of 14m model
+elif [[ $model == 70m ]]; then
+    target_loss=[3.7480,1.6161,3.6199,2.6632,3.6930,2.4198,3.9704] # Loss on eval set of pretrained 70m model
+elif [[ $model == 160m ]]; then
+    target_loss=[3.3283,1.3144,3.2101,2.3087,3.2770,2.0879,3.5596] # Loss on eval set of pretrained 160m model
+elif [[ $model == 410m ]]; then
+    target_loss=[2.8459,1.0265,2.7563,1.9353,2.6475,1.7337,3.0853] # Loss on eval set of pretrained 410m model
 fi
 eval_split_name=eval_merge # eval on all domains
-eval_interval=400ba # eval every 50 batches and update the loading proportion
+eval_interval=50ba # eval every 50 batches and update the loading proportion
 
 
 # save directroy
-run_name=${prune_run_name}_ft${max_duration}
+# run_name=${prune_run_name}_ft${max_duration}
+run_name=pythia_${model}_ft${max_duration}
 save_dir=${OUTPUT_DIR}/${run_name}
 wandb_dir=${save_dir} # save locally
 

@@ -1,7 +1,7 @@
 NUM_FILES=$(wc -l < jsonl_list.txt)
 echo "Total files: $NUM_FILES"
 
-PROJ_DIR=/Users/brandon/Documents/College/q4-fall-24/cs-229/project/LLM-Shearing
+PROJ_DIR=$1
 
 for ((i=0; i<NUM_FILES; i++))
 do
