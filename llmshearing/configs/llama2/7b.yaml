@@ -133,9 +133,9 @@ loggers:
   wandb:
     project: pruning
     name: ${run_name}
-    entity: pruning
+    entity: brandon-snider-stanford-university
     init_kwargs:
-      mode: offline
+      mode: online
       dir: wandb_dir
 
 # Checkpoint to local filesystem or remote object store
