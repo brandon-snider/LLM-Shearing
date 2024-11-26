@@ -315,7 +315,7 @@ def main(cfg):
         precision=cfg.precision,
         algorithms=algorithms,
         device_train_microbatch_size=cfg.get("device_train_microbatch_size", "auto"),
-        fsdp_config=None,  # type: ignore
+        fsdp_config=fsdp_config,  # type: ignore
         save_folder=cfg.get("save_folder", None),
         save_interval=cfg.get("save_interval", "1000ba"),
         save_num_checkpoints_to_keep=cfg.get("save_num_checkpoints_to_keep", -1),

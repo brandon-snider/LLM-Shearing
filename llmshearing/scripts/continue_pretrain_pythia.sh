@@ -1,35 +1,35 @@
 # pruning llama2 7b -> 3b or 1.3b
 
 PROJ_DIR=$1
-DATA_DIR=${PROJ_DIR}/data-all/redpajama-1B/pythia/mds/for_prune
+DATA_DIR=${PROJ_DIR}/data/redpajama-1B/pythia/mds/for_prune
 OUTPUT_DIR=${PROJ_DIR}/out/test_cpt_pythia
 LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 
 test=True
 
-model=14m
+model=160m
 config_file=${PROJ_DIR}/llmshearing/configs/pythia/${model}.yaml
 
 # Name of the pruning run that produced this model
-prune_run_name=pythia_14m_unpruned
+prune_run_name=pythia_410m_unpruned
 
 # Path to the pruned model
 # path=${PROJ_DIR}/models/pythia-14m-composer/state_dict.pt
-path=${PROJ_DIR}/out/test_pruning_pythia/pythia_70m_pruning_scaling_doremi_to14m_sl2048/pruned-latest-rank0.pt
+path=${PROJ_DIR}/out/test_pruning_pythia/pythia_410m_doremi_160m_2048/pruned-latest-rank0.pt
 
 # data setup
 data_local=${DATA_DIR}
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=16
+device_train_microbatch_size=32
 global_train_batch_size=256
-device_eval_batch_size=16
+device_eval_batch_size=64
 
 # learning setup
-lr=1e-4 # learning rate for the main parameters
-max_duration=3200ba # 50B tokens
+lr=2e-4 # learning rate for the main parameters
+max_duration=48000ba # 50B tokens
 # max_duration=48000ba # 50B tokens
 save_interval=400ba # save every 3200ba
 # save_interval=3200ba # save every 3200ba
@@ -54,7 +54,7 @@ elif [[ $model == 410m ]]; then
     target_loss=[2.8459,1.0265,2.7563,1.9353,2.6475,1.7337,3.0853] # Loss on eval set of pretrained 410m model
 fi
 eval_split_name=eval_merge # eval on all domains
-eval_interval=50ba # eval every 50 batches and update the loading proportion
+eval_interval=100ba # eval every 50 batches and update the loading proportion
 
 
 # save directroy
@@ -77,7 +77,9 @@ if [[ $test == True ]]; then t=00-01:00:00; else t=01-00:00:00; fi
      
 
 # Run in bash, it will automatically use resources available in the current environment
-composer $TRAIN_SCRIPT \
+composer \
+    -n 2 \
+    $TRAIN_SCRIPT \
     $config_file \
     run_name=${run_name} \
     data_local=${data_local} \

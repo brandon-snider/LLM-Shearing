@@ -2,17 +2,17 @@
 
 PROJ_DIR=$1
 LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
-DATA_DIR=${PROJ_DIR}/data-all/redpajama-1B/pythia/mds/for_prune
+DATA_DIR=${PROJ_DIR}/data/redpajama-1B/pythia/mds/for_prune
 OUTPUT_DIR=${PROJ_DIR}/out/test_pruning_pythia
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
-MODEL_PATH=${PROJ_DIR}/models/pythia-70m-composer # Used to load the pretrianed weights
+MODEL_PATH=${PROJ_DIR}/models/pythia-410m-composer # Used to load the pretrianed weights
 
 # Specify $PROJ_DIR in scripts/launch.sh and scripts/srun_launch.sh if using slurm
 
 test=False
 
-from_model=70m # source model size
-to_model=14m # target model size
+from_model=410m # source model size
+to_model=160m # target model size
 config_file=${PROJ_DIR}/llmshearing/configs/pythia/${from_model}.yaml
 path=$MODEL_PATH/state_dict.pt
 
@@ -71,7 +71,7 @@ elif [[ $to_model == 410m ]]; then
 fi
 
 # save directroy
-run_name=pythia_${from_model}_pruning_scaling_${update_type}_to${to_model}_sl_lr1${max_seq_len}
+run_name=pythia_${from_model}_${update_type}_${to_model}_${max_seq_len}
 save_dir=${OUTPUT_DIR}/${run_name}
 wandb_dir=${save_dir} # save locally
 
@@ -91,6 +91,7 @@ if [[ $test == True ]]; then t=00-01:00:00; else t=01-00:00:00; fi
     # $LAUNCH_SCRIPT \
     # Add: -n 8 \ below composer to use 8 GPUs
     composer \
+    -n 2 \
     $TRAIN_SCRIPT \
     $config_file \
     run_name=${run_name} \

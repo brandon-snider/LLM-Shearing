@@ -1,4 +1,4 @@
-data_local: /home/ubuntu/az1-fs1/LLM-Shearing/data-all/redpajama-1B/pythia/mds/for_prune
+data_local: /home/ubuntu/az1-fs1/LLM-Shearing/data/redpajama-1B/pythia/mds/for_prune
 data_remote: # If blank, files must be present in data_local
 tokenizer_name: EleutherAI/pythia-410m
 max_seq_len: 2048
