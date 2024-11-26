@@ -2,6 +2,7 @@
 /out
 .DS_Store       
 env
+dclm_env
 /.env/
 /data
 /data-all
