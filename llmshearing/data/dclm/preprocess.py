@@ -1,12 +1,12 @@
 """
-— Downloads and tokenizes a random sample of the DCLM dataset
+— Downloads and tokenizes a random sample of a HuggingFace dataset
 — Saves data shards to ../.data/dclm
     — i.e. from the root of the repo: .data/dclm/dclm_train_000000.npy, etc.
 — Sample size and shard size are configurable
 — Splits are "train" and "val"
 — Size of "val" is currently determined by shared_size
 
-Run as: python -m data.preprocess
+Run as: python -m llmshearing.data.dclm.preprocess
 """
 
 import os
@@ -18,7 +18,7 @@ from transformers import AutoTokenizer
 from streaming import MDSWriter
 
 print("Initializing tokenizer")
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-410m")
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-70m")
 tokenizer.pad_token = tokenizer.eos_token
 
 
@@ -58,7 +58,7 @@ def main():
         raise ValueError("HF_TOKEN environment variable is not set")
 
     # TODO: make this configurable
-    local_dir = "../../../data/dclm/pythia/mds"
+    local_dir = "../../../data/fineweb/pythia/mds"
     seq_length = 2048
     eval_size = int(1e7)  # 10M tokens for eval set
     shard_size = int(1e8)  # TODO: remove, since we're using MDSWriter
@@ -86,7 +86,7 @@ def main():
 
     print("Initializing dataset")
     ds = load_dataset(
-        "mlfoundations/dclm-baseline-1.0",
+        "HuggingFaceFW/fineweb-edu",
         split="train",
         streaming=True,
         token=hf_token,

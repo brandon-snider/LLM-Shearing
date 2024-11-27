@@ -7,3 +7,4 @@ dclm_env
 /data
 /data-all
 __pycache__/
+/icl_eval/result
