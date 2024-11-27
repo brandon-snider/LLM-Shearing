@@ -4,6 +4,7 @@
 env
 dclm_env
 /.env/
+/.env*
 /data
 /data-all
 __pycache__/

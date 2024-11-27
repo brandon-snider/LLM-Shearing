@@ -1,16 +1,7 @@
-import glob
-import math
-import os
 import sys
-from pathlib import Path
-
-import fire
 import torch
 from omegaconf import OmegaConf as om
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
-
-from llmshearing.models.composer_llama import ComposerMosaicLlama
-from llmshearing.models.composer_llama import LlamaAttention as la1
 
 
 def get_key_map_from_hf_to_composer(num_layers):

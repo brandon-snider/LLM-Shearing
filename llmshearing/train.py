@@ -32,11 +32,13 @@ from omegaconf import OmegaConf as om
 from torch import nn
 from torch.optim.optimizer import Optimizer
 
-from llmshearing.callbacks.callbacks import DebugCallback
 from llmshearing.callbacks.dynamic_loading_callback import DynamicLoadingCallback
 from llmshearing.callbacks.pruning_callback import PruningCallback
 from llmshearing.datasets.load_text_dataloader import build_text_dataloader
-from llmshearing.models.model_registry import COMPOSER_MODEL_REGISTRY
+from llmshearing.models.model_registry import (
+    COMPOSER_MODEL_REGISTRY,
+    TOKENIZER_REGISTRY,
+)
 import streaming.base.util
 
 streaming.base.util.clean_stale_shared_memory()
@@ -231,6 +233,12 @@ def main(cfg):
         getattr(cfg.callbacks.data_loading, "set_names", None) is not None
     ), "please specify the set (domain) names in the config"
 
+    tokenizer = None
+    if cfg.tokenizer.type == "local":
+        tokenizer = TOKENIZER_REGISTRY[cfg.model.name].from_pretrained(
+            cfg.model.tokenizer_name
+        )
+
     # Dataloaders
     print("Building train loader...")
     train_loader = build_text_dataloader(
@@ -239,6 +247,7 @@ def main(cfg):
         cfg.callbacks.data_loading.dynamic,
         cfg.callbacks.data_loading.set_names,
         proportion=cfg.callbacks.data_loading.proportion,
+        tokenizer=tokenizer,
     )
     print("Building eval loader...")
     evaluators = []
@@ -252,6 +261,7 @@ def main(cfg):
                 dynamic=False,
                 set_names=cfg.callbacks.data_loading.set_names,
                 proportion=None,
+                tokenizer=tokenizer,
             ),
             metric_names=list(model.train_metrics.keys()),
         )

@@ -397,9 +397,6 @@ class PythiaAttention(nn.Module):
         qk_head_dim_z = None
         vo_head_dim_z = None
 
-        for k, v in zs_block.items():
-            print(k, v.shape)
-
         if "head_z" in zs_block:
             head_z = zs_block["head_z"].squeeze()
 
@@ -447,7 +444,6 @@ class PythiaAttention(nn.Module):
 
         if hidden_z is not None:
             remaining_index = torch.where(~hidden_z.eq(0))[0]
-            new_model_dim = len(remaining_index)
             print(f"    Head hidden: {len(hidden_z)} -> {len(remaining_index)}")
             half = next(self.query_key_value.parameters()).dtype == torch.float16
             self.query_key_value = prune_linear_layer(
@@ -467,13 +463,6 @@ class PythiaAttention(nn.Module):
         heads, index = find_pruneable_heads_and_indices(
             to_prune_heads, self.n_heads, self.head_dim, self.pruned_heads
         )
-
-        # new_n_heads = self.n_heads - len(heads)
-
-        # if new_model_dim is not None:
-        #     self.head_dim = new_model_dim // new_n_heads
-
-        # self.all_head_size = self.head_dim * new_n_heads
 
         # Prune linear layers
         # setting layers to be None if all the heads are pruned

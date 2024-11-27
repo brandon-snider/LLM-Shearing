@@ -25,6 +25,7 @@ def build_text_dataloader(
     dynamic: bool = False,
     set_names: str = None,
     proportion: List[float] = None,
+    tokenizer: Optional[PreTrainedTokenizerBase] = None,
 ) -> DataLoader:
     """Builds a text dataloader.
 
@@ -64,7 +65,9 @@ def build_text_dataloader(
             is_uint16=cfg.dataset.get("is_uint16", False),
         )
 
-    tokenizer = AutoTokenizer.from_pretrained(cfg.dataset.tokenizer_name)
+    if tokenizer is None:
+        tokenizer = AutoTokenizer.from_pretrained(cfg.dataset.tokenizer_name)
+
     if isinstance(dataset[0], Mapping) and "set" in dataset[0]:
         COLLATE_FN = DataCollatorForLMWithSetName
         collate_fn = COLLATE_FN(set_names=set_names, tokenizer=tokenizer, mlm=False)

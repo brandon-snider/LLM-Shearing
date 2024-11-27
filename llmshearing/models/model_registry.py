@@ -3,6 +3,8 @@
 
 from llmshearing.models.composer_llama import ComposerMosaicLlama
 from llmshearing.models.composer_pythia import ComposerMosaicPythia
+from llmshearing.models.composer_qwen import ComposerMosaicQwen
+from llmshearing.tokenizers.tokenization_qwen2_fast import Qwen2TokenizerFast
 
 COMPOSER_MODEL_REGISTRY = {
     "mosaic_llama_125m": ComposerMosaicLlama,
@@ -26,4 +28,9 @@ COMPOSER_MODEL_REGISTRY = {
     "mosaic_llama2_7b": ComposerMosaicLlama,
     "mosaic_llama2_13b": ComposerMosaicLlama,
     "mosaic_together_3b": ComposerMosaicPythia,
+    "mosaic_qwen_0.5b": ComposerMosaicQwen,
+}
+
+TOKENIZER_REGISTRY = {
+    "mosaic_qwen_0.5b": Qwen2TokenizerFast,
 }
