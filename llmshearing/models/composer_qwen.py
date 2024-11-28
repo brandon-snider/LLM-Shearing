@@ -67,6 +67,9 @@ class QwenModel(nn.Module):
             }
         )
 
+        # Tie weights
+        self.transformer.wte.weight = self.transformer.output.weight
+
         self.transformer.update(
             {
                 "ln_f": LlamaRMSNorm(

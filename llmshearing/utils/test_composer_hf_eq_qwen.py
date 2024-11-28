@@ -29,7 +29,7 @@ def construct_example_cfg(model_size, path=None, add_l0_module=False):
             {
                 "init_device": "cpu",
                 "init_std": 0.02,
-                "attn_impl": "normal",
+                "attn_impl": "flash",
                 "rotary_emb_base": 1000000,
                 "vocab_size": 151936,
                 "max_seq_len": 32768,
@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
     if torch.cuda.is_available():
         input_ids = input_ids.cuda()
-        composer_model.bfloat16().cuda()
-        hf_model.bfloat16().cuda()
+        composer_model.half().cuda()
+        hf_model.half().cuda()
 
     hf_output = hf_model(input_ids, labels=input_ids)
     composer_output = composer_model({"input_ids": input_ids})

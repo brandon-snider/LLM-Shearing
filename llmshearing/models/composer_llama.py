@@ -40,6 +40,7 @@ class LlamaRMSNorm(nn.Module):
             )
         else:
             compressed_input = hidden_states
+
         variance = compressed_input.to(torch.float32).pow(2).mean(-1, keepdim=True)
         hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
 
