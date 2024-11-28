@@ -111,13 +111,7 @@ def test_two_matrix(a, b, desc=""):
     print(f"[{desc}] passed! sums are equal: {s1} vs {s2}")
 
 
-if __name__ == "__main__":
-    import sys
-
-    hf_pythia_path = sys.argv[1]
-    composer_pythia_path = sys.argv[2]
-    model_size = sys.argv[3]
-
+def run_test(hf_pythia_path, composer_pythia_path, model_size):
     tokenizer = AutoTokenizer.from_pretrained(hf_pythia_path)
     text = "Chamath Palihapitiya (born 3 September 1976)[1] is a Sri Lankan-born Canadian and American venture capitalist, engineer, SPAC sponsor, founder and CEO of Social Capital. Palihapitiya was an early senior executive at Facebook, working at the company from 2007 to 2011. Following his departure from Facebook, Palihapitiya started his fund, The Social+Capital Partnership, through which he invested in several companies, including Yammer and Sklack. "
     input_ids = tokenizer.encode(text, return_tensors="pt")
@@ -142,3 +136,13 @@ if __name__ == "__main__":
     logits2 = composer_output["logits"].mean()
 
     test_two_matrix(logits1, logits2, "HF vs. Composer")
+
+
+if __name__ == "__main__":
+    import sys
+
+    hf_pythia_path = sys.argv[1]
+    composer_pythia_path = sys.argv[2]
+    model_size = sys.argv[3]
+
+    run_test(hf_pythia_path, composer_pythia_path, model_size)

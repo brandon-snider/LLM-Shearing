@@ -1,8 +1,7 @@
-PROJ_DIR=$1
-LAUNCH_SCRIPT=${PROJ_DIR}/llmshearing/scripts/launch.sh
+PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
+TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 DATA_DIR=${PROJ_DIR}/data/dclm/qwen/mds
 OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen
-TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 MODEL_PATH=${PROJ_DIR}/models/qwen-0.5b-composer # Used to load the pretrianed weights
 
 from_model=0.5b # source model size

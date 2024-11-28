@@ -17,8 +17,9 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from streaming import MDSWriter
 
+
 print("Initializing tokenizer")
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-14m")
 tokenizer.pad_token = tokenizer.eos_token
 
 
@@ -26,13 +27,6 @@ def tokenize(doc):
     return tokenizer.encode(
         doc["text"], add_special_tokens=True, return_tensors="np"
     ).flatten()
-
-
-# TODO: remove if we're sticking with MDSWriter
-# def write_datafile(filename, tokens_np):
-#     # Ensure directory exists
-#     os.makedirs(os.path.dirname(filename), exist_ok=True)
-#     np.save(filename, tokens_np)
 
 
 def create_shard_progress(shard_index, sequences_per_shard):
@@ -46,12 +40,8 @@ def create_shard_progress(shard_index, sequences_per_shard):
 
 
 def main():
-    # hf_token = os.getenv("HF_TOKEN")
-    # if hf_token is None:
-    #     raise ValueError("HF_TOKEN environment variable is not set")
-
     # TODO: make this configurable
-    local_dir = "../../data/dclm/qwen/mds"
+    local_dir = "../../data/dclm/pythia/mds"
     seq_length = 2048
     eval_size = int(1e6)  # 10M tokens for eval set
     shard_size = int(1e7)  # TODO: remove, since we're using MDSWriter
@@ -82,7 +72,6 @@ def main():
         "mlfoundations/dclm-baseline-1.0",
         split="train",
         streaming=True,
-        # token=hf_token,
     )
     ds = ds.shuffle(seed=42, buffer_size=10000)
 
@@ -143,12 +132,6 @@ def main():
                     else:
                         sequences_np = np.array(sequences, dtype=np.uint16)
 
-                    # TODO: remove if we're sticking with MDSWriter
-                    # filename = os.path.join(
-                    #     DATA_CACHE_DIR, split, f"dclm_{split}_{shard_index:06d}"
-                    # )
-                    # write_datafile(filename, sequences_np)
-
                     writer = eval_writer if split == "eval" else train_writer
 
                     for sequence_np in sequences_np:
@@ -169,12 +152,6 @@ def main():
                 sequences_np = np.array(sequences, dtype=np.uint32)
             else:
                 sequences_np = np.array(sequences, dtype=np.uint16)
-
-            # TODO: remove if we're sticking with MDSWriter
-            # filename = os.path.join(
-            #     DATA_CACHE_DIR, split, f"dclm_{split}_{shard_index:06d}"
-            # )
-            # write_datafile(filename, sequences_np)
 
             writer = eval_writer if split == "eval" else train_writer
 
