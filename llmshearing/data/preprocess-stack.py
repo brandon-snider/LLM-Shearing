@@ -89,7 +89,7 @@ def main():
     print("Tokenizing documents")
 
     # Initialize the multiprocessing pool
-    nprocs = max(1, os.cpu_count() - 4)
+    nprocs = max(1, os.cpu_count() // 2)
     with mp.Pool(nprocs, initializer=init_worker) as pool:
         current_tokens = []
 
