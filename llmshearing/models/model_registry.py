@@ -29,8 +29,10 @@ COMPOSER_MODEL_REGISTRY = {
     "mosaic_llama2_13b": ComposerMosaicLlama,
     "mosaic_together_3b": ComposerMosaicPythia,
     "mosaic_qwen_0.5b": ComposerMosaicQwen,
+    "mosaic_qwen_1.5b": ComposerMosaicQwen,
 }
 
 TOKENIZER_REGISTRY = {
     "mosaic_qwen_0.5b": Qwen2TokenizerFast,
+    "mosaic_qwen_1.5b": Qwen2TokenizerFast,
 }

@@ -1,20 +1,20 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
-DATA_DIR=${PROJ_DIR}/data/dclm/qwen/mds
-OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen
-MODEL_PATH=${PROJ_DIR}/models/qwen-0.5b-composer # Used to load the pretrianed weights
+DATA_DIR=${PROJ_DIR}/data/stack-smol/qwen/mds
+OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen_stack
+MODEL_PATH=${PROJ_DIR}/models/qwen-1.5b-composer # Used to load the pretrianed weights
 
-from_model=0.5b # source model size
-to_model=0.3b # target model size
+from_model=1.5b # source model size
+to_model=0.5b # target model size
 config_file=${PROJ_DIR}/llmshearing/configs/qwen/${from_model}.yaml
 path=$MODEL_PATH/state_dict.pt
 tokenizer_path=${PROJ_DIR}/tokenizers/qwen-tokenizer
 
 # basic setup
-max_seq_len=2048
-device_train_microbatch_size=4
-global_train_batch_size=32
-device_eval_batch_size=8
+max_seq_len=32768
+device_train_microbatch_size=1
+global_train_batch_size=2
+device_eval_batch_size=1
 n_gpus=1
 
 # learning setup
@@ -31,7 +31,7 @@ dynamic=False
 set_names=[train]
 proportion=[1.0]
 
-dataset_name=dclm
+dataset_name=stack-smol
 train_split_name=train
 eval_split_name=eval # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
@@ -50,12 +50,12 @@ wandb_dir=${save_dir}
 # constant: keep the weights constant
 update_type=doremi 
 
-if [[ $to_model == 0.3b ]]; then
-    target_loss=[4.26942,2.17134,4.2438,3.14441,4.45089,2.96644,4.52761] # TODO: figure out target architecture and reference losses
+if [[ $to_model == 0.5b ]]; then
+    target_loss=[4.26942,2.17134,4.2438,3.14441,4.45089,2.96644,4.52761] # Note: only used with dynamic batch loading
 fi
 
-if [[ $to_model == 0.3b ]]; then
-    target_d_model=64; target_n_heads=4; target_n_layers=4; target_intermediate_size=256
+if [[ $to_model == 0.5b ]]; then
+    target_d_model=896; target_n_heads=12; target_n_layers=24; target_intermediate_size=4864
 fi
 
 composer \

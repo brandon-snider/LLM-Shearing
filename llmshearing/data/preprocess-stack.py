@@ -45,7 +45,7 @@ def download_file(file):
 
 def tokenize(sample):
     files = sample["files"]
-    with ThreadPoolExecutor(max_workers=64) as executor:
+    with ThreadPoolExecutor(max_workers=16) as executor:
         files = list(executor.map(download_file, files))
     sample_content = " ".join(file["content"] for file in files if "content" in file)
     tokens = tokenizer.encode(sample_content, add_special_tokens=True)
@@ -89,7 +89,7 @@ def main():
     print("Tokenizing documents")
 
     # Initialize the multiprocessing pool
-    nprocs = max(1, os.cpu_count() - 1)
+    nprocs = max(1, os.cpu_count() - 4)
     with mp.Pool(nprocs, initializer=init_worker) as pool:
         current_tokens = []
 
@@ -99,7 +99,7 @@ def main():
             total=total_sequences, unit="sequences", desc="Total Progress", position=0
         )
 
-        for tokens in pool.imap(tokenize, ds, chunksize=128):
+        for tokens in pool.imap(tokenize, ds, chunksize=16):
             if tokens_collected >= total_size:
                 break
 
