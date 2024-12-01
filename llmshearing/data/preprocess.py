@@ -19,7 +19,7 @@ from streaming import MDSWriter
 
 
 print("Initializing tokenizer")
-tokenizer = AutoTokenizer.from_pretrained("EleutherAI/pythia-14m")
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
 tokenizer.pad_token = tokenizer.eos_token
 
 
@@ -41,11 +41,11 @@ def create_shard_progress(shard_index, sequences_per_shard):
 
 def main():
     # TODO: make this configurable
-    local_dir = "../../data/dclm/pythia/mds"
+    local_dir = "../../data/stack-smol/qwen/mds"
     seq_length = 2048
-    eval_size = int(1e6)  # 10M tokens for eval set
-    shard_size = int(1e7)  # TODO: remove, since we're using MDSWriter
-    total_size = int(1e8)  # 1B tokens
+    eval_size = int(1e5)  # 10M tokens for eval set
+    shard_size = int(1e6)  # TODO: remove, since we're using MDSWriter
+    total_size = int(1e7)  # 1B tokens
     sequences_per_shard = shard_size // seq_length
     total_sequences = total_size // seq_length
     tokens_collected = 0
@@ -69,7 +69,8 @@ def main():
 
     print("Initializing dataset")
     ds = load_dataset(
-        "mlfoundations/dclm-baseline-1.0",
+        # "mlfoundations/dclm-baseline-1.0",
+        "bigcode/the-stack-v2-train-smol-ids",
         split="train",
         streaming=True,
     )

@@ -40,9 +40,6 @@ from llmshearing.models.model_registry import (
     TOKENIZER_REGISTRY,
 )
 import streaming.base.util
-
-from llmshearing.mdl.app import app, volume, image
-import modal
 import wandb
 
 streaming.base.util.clean_stale_shared_memory()
@@ -152,14 +149,14 @@ def build_optimizer(
         raise ValueError(f"Not sure how to build optimizer: {name}")
 
 
-@app.function(image=image, volumes={"/pruning-vol": volume}, gpu="H100")
 def main(cfg):
     # save the config files
     save_dir = cfg.save_folder.replace("{run_name}", cfg.run_name)
     os.makedirs(save_dir, exist_ok=True)
     torch.save(cfg, save_dir + "/config.pt")
 
-    wandb.login(key=f"{cfg.wandb_key}")
+    if cfg.wandb_key is not None:
+        wandb.login(key=f"{cfg.wandb_key}")
 
     """Main training function"""
     print("Start running ")
@@ -388,9 +385,6 @@ if __name__ == "__main__":
         yaml_cfg = om.load(f)
     cli_cfg = om.from_cli(args_list)
     cfg = om.merge(yaml_cfg, cli_cfg)
-
     cfg.wandb_key = os.getenv("WANDB_KEY")
 
-    with modal.enable_output():
-        with app.run():
-            main.remote(cfg)
+    main(cfg)

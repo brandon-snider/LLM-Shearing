@@ -1,21 +1,13 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
 
+TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
+DATA_DIR=${PROJ_DIR}/data/dclm/pythia/mds
+OUTPUT_DIR=${PROJ_DIR}/out/prune_pythia
+MODEL_PATH=${PROJ_DIR}/models/pythia-14m-composer # Used to load the pretrianed weights
+
 from_model=14m # source model size
 to_model=6.6m # target model size
-
-# Local paths
-TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 config_file=${PROJ_DIR}/llmshearing/configs/pythia/${from_model}.yaml
-
-# DATA_DIR=${PROJ_DIR}/data/dclm/pythia/mds
-# OUTPUT_DIR=${PROJ_DIR}/out/prune_pythia
-# MODEL_PATH=${PROJ_DIR}/models/pythia-14m-composer # Used to load the pretrianed weights
-
-# Remote volume paths (to use locally, set VOLUME_DIR to a local directory e.g. PROJ_DIR)
-VOLUME_DIR=/pruning-vol
-DATA_DIR=${VOLUME_DIR}/data/dclm/pythia/mds
-OUTPUT_DIR=${VOLUME_DIR}/out/prune_pythia
-MODEL_PATH=${VOLUME_DIR}/models/pythia-14m-composer # Used to load the pretrianed weights
 path=$MODEL_PATH/state_dict.pt
 
 # basic setup
@@ -27,17 +19,17 @@ n_gpus=1
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters
-max_duration=1ba # 400M tokens
+max_duration=3200ba # 400M tokens
 save_interval=800ba # save in the end
 t_warmup=320ba # learning rate warmup (typically set to 10% of max_duration)
 
-# dynamic=True
-# set_names=[cc,github,book,stackexchange,wiki,arxiv,c4-rp] # domain names
-# proportion=[0.67,0.045,0.045,0.02,0.045,0.025,0.15] # initial proportion of RP, make sure that the sum(proportion) = 1
+dynamic=True
+set_names=[cc,github,book,stackexchange,wiki,arxiv,c4-rp] # domain names
+proportion=[0.67,0.045,0.045,0.02,0.045,0.025,0.15] # initial proportion of RP, make sure that the sum(proportion) = 1
 
-dynamic=False
-set_names=[train]
-proportion=[1.0]
+# dynamic=False
+# set_names=[train]
+# proportion=[1.0]
 
 dataset_name=dclm
 train_split_name=train
