@@ -17,16 +17,25 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from streaming import MDSWriter
 
+from llmshearing.data.utils import download_contents
+
 
 print("Initializing tokenizer")
 tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
 tokenizer.pad_token = tokenizer.eos_token
 
 
-def tokenize(doc):
+# Switch between these depending on whether we're using The Stack or some other dataset
+def tokenize(sample):
     return tokenizer.encode(
-        doc["text"], add_special_tokens=True, return_tensors="np"
+        " ".join(file["content"] for file in sample["files"]),
+        add_special_tokens=True,
+        return_tensors="np",
     ).flatten()
+
+    # return tokenizer.encode(
+    #     sample["text"], add_special_tokens=True, return_tensors="np"
+    # ).flatten()
 
 
 def create_shard_progress(shard_index, sequences_per_shard):
@@ -72,9 +81,13 @@ def main():
         # "mlfoundations/dclm-baseline-1.0",
         "bigcode/the-stack-v2-train-smol-ids",
         split="train",
-        streaming=True,
+        # streaming=True,
     )
+
     ds = ds.shuffle(seed=42, buffer_size=10000)
+
+    # Comment out if not streaming files (i.e. not downloading from The Stack)
+    ds = ds.map(lambda row: download_contents(row["files"]))
 
     print("Tokenizing documents")
 
