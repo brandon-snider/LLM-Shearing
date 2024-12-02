@@ -73,8 +73,6 @@ if __name__ == "__main__":
     # Disable strict mode to allow for missing rotary_emb.inv_freq
     composer_model.load_state_dict(torch.load(composer_qwen_path), strict=False)
 
-    print(composer_model.state_dict().keys())
-
     # check if they have the same naming convention
     hf_model = AutoModelForCausalLM.from_pretrained(hf_qwen_path)
 

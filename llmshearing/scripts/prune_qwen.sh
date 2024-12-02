@@ -13,9 +13,9 @@ tokenizer_path=${PROJ_DIR}/tokenizers/qwen-tokenizer
 # basic setup
 max_seq_len=32768
 device_train_microbatch_size=1
-global_train_batch_size=2
+global_train_batch_size=8
 device_eval_batch_size=1
-n_gpus=1
+n_gpus=8
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters

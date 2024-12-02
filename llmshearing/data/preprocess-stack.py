@@ -53,8 +53,8 @@ def tokenize(sample):
 
 
 def main():
-    local_dir = "../../data/stack-smol/qwen/mds"
-    seq_length = 32768
+    local_dir = "../../data/stack-smol-short/qwen/mds"
+    seq_length = 4096
     eval_size = int(1e7)  # 10M tokens for eval set
     total_size = int(1e9)  # 1B tokens
     tokens_collected = 0
@@ -80,11 +80,11 @@ def main():
     ds = load_dataset(
         "bigcode/the-stack-v2-train-smol-ids",
         split="train",
-        # streaming=True,
+        streaming=True,
     )
 
-    # ds = ds.shuffle(seed=42, buffer_size=10000)
-    ds = ds.shuffle(seed=42)
+    ds = ds.shuffle(seed=42, buffer_size=10000)
+    # ds = ds.shuffle(seed=42)
 
     print("Tokenizing documents")
 

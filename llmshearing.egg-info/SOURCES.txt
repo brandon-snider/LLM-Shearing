@@ -5,6 +5,5 @@ llmshearing/train.py
 llmshearing.egg-info/PKG-INFO
 llmshearing.egg-info/SOURCES.txt
 llmshearing.egg-info/dependency_links.txt
-llmshearing.egg-info/entry_points.txt
 llmshearing.egg-info/requires.txt
 llmshearing.egg-info/top_level.txt
