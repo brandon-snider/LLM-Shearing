@@ -43,8 +43,8 @@ timeout = 60 * 60 * 24  # 1 day
     image=image,
     timeout=timeout,
     volumes={"/root/pruning-vol": volume},
-    # cpu=2,
-    # memory=512,
+    cpu=16,
+    memory=4096,
 )
 def ssh_server():
     subprocess.Popen(["/usr/sbin/sshd", "-D", "-e"])
