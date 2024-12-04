@@ -38,7 +38,7 @@ def main():
     local_dir = "../../data/opencoder-annealing/algorithmic_corpus/qwen/mds"
     seq_length = 2048
     eval_size = int(1e7)  # 10M tokens for eval set
-    total_size = int(2e10)  # 20B tokens
+    total_size = int(3e10)  # 30B tokens
     tokens_collected = 0
     eval_tokens_collected = 0
 
@@ -64,16 +64,17 @@ def main():
         "OpenCoder-LLM/opc-annealing-corpus",
         "algorithmic_corpus",  # "algorithmic_corpus" or "synthetic_code_snippet" or "synthetic_qa"
         split="train",
-        streaming=True,
+        data_files="algorithmic_corpus/*.arrow",
+        # streaming=True,
     )
 
-    ds = ds.shuffle(seed=42, buffer_size=10000)  # When streaming
-    # ds = ds.shuffle(seed=42)  # When not streaming
+    # ds = ds.shuffle(seed=42, buffer_size=10000)  # When streaming
+    ds = ds.shuffle(seed=42)  # When not streaming
 
     print("Tokenizing documents")
 
     # Initialize the multiprocessing pool
-    nprocs = max(1, os.cpu_count() - 4)
+    nprocs = max(1, os.cpu_count() - 2)
     with mp.Pool(nprocs, initializer=init_worker) as pool:
         current_tokens = []
 
