@@ -11,7 +11,7 @@ path=$MODEL_PATH/state_dict.pt
 tokenizer_path=${PROJ_DIR}/tokenizers/qwen-tokenizer
 
 # basic setup
-max_seq_len=32768
+max_seq_len=2048
 device_train_microbatch_size=1
 global_train_batch_size=8
 device_eval_batch_size=1
@@ -35,6 +35,7 @@ dataset_name=stack-smol
 train_split_name=train
 eval_split_name=eval # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
+eval_subset_num_batches=100 # eval on this many batches
 eval_interval=100ba # eval at this interval
 
 # pruning setup
@@ -76,6 +77,7 @@ composer \
     save_folder=${save_dir} \
     loggers.wandb.init_kwargs.dir=${wandb_dir} \
     eval_interval=${eval_interval} \
+    eval_subset_num_batches=${eval_subset_num_batches} \
     save_interval=${save_interval} \
     optimizer.lr=${lr} \
     optimizer.lag_lr=${lag_lr} \
