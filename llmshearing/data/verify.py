@@ -47,6 +47,6 @@ def verify_data(split, data_dir, num_samples_to_check=5):
 
 
 if __name__ == "__main__":
-    data_dir = "data/stack-smol/qwen/mds"
+    data_dir = "data/opencoder-annealing/qwen/mds"
     verify_data("train", data_dir)
     verify_data("eval", data_dir)

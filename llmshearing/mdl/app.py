@@ -34,7 +34,7 @@ volume = modal.Volume.from_name("pruning-vol", create_if_missing=True)
 # mdoal volume rm -r pruning-vol data
 
 
-@app.function(image=image, timeout=3600, volumes={"/pruning-vol": volume}, gpu="A100")
+@app.function(image=image, timeout=3600, volumes={"/pruning-vol": volume})
 def ssh_server():
     subprocess.Popen(["/usr/sbin/sshd", "-D", "-e"])
     with modal.forward(port=22, unencrypted=True) as tunnel:
