@@ -33,10 +33,10 @@ model:
     pruning_modules: ["head", "head_layer", "mlp", "intermediate"]
     lagrangian_warmup_steps: 320ba
     target_model:
-      d_model: 64
-      n_layers: 4
-      n_heads: 3
-      intermediate_size: 256
+      d_model: 1024
+      n_heads: 16
+      n_layers: 24
+      intermediate_size: 4096
       vocab_size: 50304
 
 # Tokenizer
