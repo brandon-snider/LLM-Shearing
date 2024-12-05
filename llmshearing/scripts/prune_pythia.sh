@@ -72,7 +72,7 @@ elif [[ $to_model == 70m ]]; then
 elif [[ $to_model == 160m ]]; then
     target_d_model=768; target_n_heads=12; target_n_layers=12; target_intermediate_size=3072
 elif [[ $to_model == 410m ]]; then
-    target_d_model=1024; target_n_heads=24; target_n_layers=16; target_intermediate_size=4096
+    target_d_model=1024; target_n_heads=16; target_n_layers=24; target_intermediate_size=4096
 fi
 
 composer \
