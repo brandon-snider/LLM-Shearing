@@ -1,4 +1,5 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
+
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
 DATA_DIR=${PROJ_DIR}/data/opencoder-annealing/qwen/for_prune_merged
 OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen_opencoder
