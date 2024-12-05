@@ -36,7 +36,7 @@ local_secret = modal.Secret.from_dict(
 @app.function(
     image=image,
     gpu="any",
-    volumes={"/pruning-vol": volume},
+    volumes={"/root/pruning-vol": volume},
     secrets=[local_secret],
     timeout=1800,  # 30 minutes
 )
@@ -110,3 +110,29 @@ def ssh_server():
 def main():
     # evaluate.remote()
     ssh_server.remote()
+
+
+# accelerate launch /root/bigcode-evaluation-harness/main.py \
+#     --model Qwen/Qwen2.5-Coder-0.5B \
+#     --metric_output_path /root/pruning-vol/bigcode-evals/qwen-coder-0.5b/mbpp.json \
+#     --precision bf16 \
+#     --tasks mbpp \
+#     --allow_code_execution \
+#     --batch_size 1 \
+#     --n_samples 1 \
+#     --temperature 0.0 \
+#     --max_length_generation 512 \
+#     --limit 100
+
+# accelerate launch /root/bigcode-evaluation-harness/main.py \
+#     --model Qwen/Qwen2.5-Coder-0.5B \
+#     --metric_output_path /root/pruning-vol/bigcode-evals/qwen-coder-0.5b/humaneval.json \
+#     --precision bf16 \
+#     --tasks humaneval \
+#     --allow_code_execution \
+#     --batch_size 1 \
+#     --n_samples 1 \
+#     --temperature 0.0 \
+#     --max_length_generation 512 \
+#     --do_sample false \
+#     --limit 100
