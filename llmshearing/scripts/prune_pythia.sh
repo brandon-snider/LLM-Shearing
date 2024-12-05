@@ -12,7 +12,7 @@ path=$MODEL_PATH/state_dict.pt
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=16
+device_train_microbatch_size=8
 global_train_batch_size=32
 device_eval_batch_size=16
 n_gpus=1
@@ -113,4 +113,4 @@ composer \
     train_loader.prefetch_factor=null \
     train_loader.persistent_workers=false \
     train_loader.dataset.split=${train_split_name} \
-    autoresume=false
+    autoresume=true
