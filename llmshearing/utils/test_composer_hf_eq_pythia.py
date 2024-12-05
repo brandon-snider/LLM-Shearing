@@ -126,8 +126,8 @@ def run_test(hf_pythia_path, composer_pythia_path, model_size):
 
     if torch.cuda.is_available():
         input_ids = input_ids.cuda()
-        composer_model.half().cuda()
-        hf_model.half().cuda()
+        composer_model.bfloat16().cuda()
+        hf_model.bfloat16().cuda()
 
     hf_output = hf_model(input_ids, labels=input_ids)
     composer_output = composer_model({"input_ids": input_ids})

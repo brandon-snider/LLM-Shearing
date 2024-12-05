@@ -564,9 +564,9 @@ class PythiaAttention(nn.Module):
             # TODO: remove this hack
             # For some reason, query and key are in float32 (value is float16)
             # This is not required when FSDP is used (for some reason)
-            query = query.half()
-            key = key.half()
-            value = value.half()
+            query = query.bfloat16()
+            key = key.bfloat16()
+            value = value.bfloat16()
 
             context, attn_weights = self.attn_fn(
                 query,

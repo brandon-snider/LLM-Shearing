@@ -12,9 +12,9 @@ path=$MODEL_PATH/state_dict.pt
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=32
+device_train_microbatch_size=16
 global_train_batch_size=32
-device_eval_batch_size=64
+device_eval_batch_size=16
 n_gpus=1
 
 # learning setup
@@ -36,7 +36,7 @@ train_split_name=train
 eval_split_name=eval # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
 # eval_subset_num_batches=440 # should be 3,500 / device_eval_batch_size (I think)
-eval_interval=200ba # eval at this interval
+eval_interval=400ba # eval at this interval
 
 # pruning setup
 lag_lr=1.0 # learning rate or l0_module
