@@ -1,7 +1,7 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
-DATA_DIR=${PROJ_DIR}/data/stack-smol/qwen/mds
-OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen_stack
+DATA_DIR=${PROJ_DIR}/data/opencoder-annealing/qwen/for_prune_merged
+OUTPUT_DIR=${PROJ_DIR}/out/prune_qwen_opencoder
 MODEL_PATH=${PROJ_DIR}/models/qwen-1.5b-composer # Used to load the pretrianed weights
 
 from_model=1.5b # source model size
@@ -12,15 +12,15 @@ tokenizer_path=${PROJ_DIR}/tokenizers/qwen-tokenizer
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=1
-global_train_batch_size=8
-device_eval_batch_size=1
-n_gpus=8
+device_train_microbatch_size=2
+global_train_batch_size=32
+device_eval_batch_size=8
+n_gpus=1
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters
-max_duration=1ba # 400M tokens
-save_interval=800ba # save in the end
+max_duration=6400ba # 400M tokens
+save_interval=1600ba # save in the end
 t_warmup=320ba # learning rate warmup (typically set to 10% of max_duration)
 
 # dynamic=True
@@ -31,12 +31,12 @@ dynamic=False
 set_names=[train]
 proportion=[1.0]
 
-dataset_name=stack-smol
+dataset_name=opencoder-annealing
 train_split_name=train
 eval_split_name=eval # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
-eval_subset_num_batches=100 # eval on this many batches
-eval_interval=100ba # eval at this interval
+eval_subset_num_batches=440 # should be 3,500 / device_eval_batch_size (I think)
+eval_interval=200ba # eval at this interval
 
 # pruning setup
 lag_lr=1.0 # learning rate or l0_module

@@ -6,11 +6,13 @@ from streaming import StreamingDataset
 from transformers import AutoTokenizer
 import numpy as np
 import os
+from llmshearing.tokenizers.tokenization_qwen2_fast import Qwen2TokenizerFast
 
 
 def verify_data(split, data_dir, num_samples_to_check=5):
     # Initialize the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B")
+    tokenizer = Qwen2TokenizerFast.from_pretrained("Qwen/Qwen2.5-1.5B")
+    # tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-1.5B")
     tokenizer.pad_token = tokenizer.eos_token
 
     # Set the path to your data split
@@ -47,6 +49,6 @@ def verify_data(split, data_dir, num_samples_to_check=5):
 
 
 if __name__ == "__main__":
-    data_dir = "data/opencoder-annealing/qwen/mds"
+    data_dir = "data/opencoder-annealing/qwen/for_prune_merged"
     verify_data("train", data_dir)
     verify_data("eval", data_dir)

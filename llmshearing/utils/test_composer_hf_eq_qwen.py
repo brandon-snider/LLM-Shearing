@@ -19,6 +19,18 @@ def construct_example_cfg(model_size, path=None, add_l0_module=False):
                 "rms_norm_eps": 1e-6,
             }
         )
+    elif model_size == "1.5B":
+        cfg = om.create(
+            {
+                "name": "qwen-1.5b",
+                "d_model": 1536,
+                "n_heads": 12,
+                "n_layers": 28,
+                "n_kv_heads": 2,
+                "intermediate_size": 8960,
+                "rms_norm_eps": 1e-6,
+            }
+        )
     else:
         raise ValueError(f"model size {model_size} not supported")
 

@@ -52,6 +52,7 @@ def build_text_dataloader(
             proportion=proportion,
             set_names=set_names,
             is_uint16=cfg.dataset.get("is_uint16", False),
+            is_uint32=cfg.dataset.get("is_uint32", False),
         )
     else:
         dataset = TextStreamingDataset(
@@ -63,6 +64,7 @@ def build_text_dataloader(
             num_canonical_nodes=cfg.dataset.get("num_canonical_nodes", 128),
             split=cfg.dataset.get("split", None),
             is_uint16=cfg.dataset.get("is_uint16", False),
+            is_uint32=cfg.dataset.get("is_uint32", False),
         )
 
     if tokenizer is None:
