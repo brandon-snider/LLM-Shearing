@@ -397,8 +397,8 @@ class PythiaAttention(nn.Module):
         qk_head_dim_z = None
         vo_head_dim_z = None
 
-        # if "head_z" in zs_block:
-        #     head_z = zs_block["head_z"].squeeze()
+        if "head_z" in zs_block:
+            head_z = zs_block["head_z"].squeeze()
 
         if "head_layer_z" in zs_block:
             head_layer_z = zs_block["head_layer_z"].squeeze()
@@ -407,26 +407,26 @@ class PythiaAttention(nn.Module):
             hidden_z = zs_block["hidden_z"].squeeze()
 
         # update params #
-        # if head_z is not None:
-        #     head_z_for_update = torch.repeat_interleave(head_z, self.head_dim)
-        #     start_index = torch.arange(0, self.n_heads * 3, 3) + 2
-        #     end_index = start_index + 1
-        #     index = torch.cat(
-        #         [
-        #             torch.arange(i, j)
-        #             for i, j in zip(
-        #                 start_index * self.head_dim, end_index * self.head_dim
-        #             )
-        #         ]
-        #     )
-        #     self.query_key_value.weight.data[index, :] = (
-        #         self.query_key_value.weight.data.transpose(0, 1)[:, index]
-        #         .mul(head_z_for_update)
-        #         .transpose(0, 1)
-        #     )
-        #     self.query_key_value.bias.data[index] = self.query_key_value.bias.data[
-        #         index
-        #     ].mul(head_z_for_update)
+        if head_z is not None:
+            head_z_for_update = torch.repeat_interleave(head_z, self.head_dim)
+            start_index = torch.arange(0, self.n_heads * 3, 3) + 2
+            end_index = start_index + 1
+            index = torch.cat(
+                [
+                    torch.arange(i, j)
+                    for i, j in zip(
+                        start_index * self.head_dim, end_index * self.head_dim
+                    )
+                ]
+            )
+            self.query_key_value.weight.data[index, :] = (
+                self.query_key_value.weight.data.transpose(0, 1)[:, index]
+                .mul(head_z_for_update)
+                .transpose(0, 1)
+            )
+            self.query_key_value.bias.data[index] = self.query_key_value.bias.data[
+                index
+            ].mul(head_z_for_update)
 
         if head_layer_z is not None:
             self.out_proj.weight.data = (
@@ -454,45 +454,45 @@ class PythiaAttention(nn.Module):
                 self.query_key_value.half()
                 self.out_proj.half()
 
-        # to_prune_heads = turn_head_z(head_z, head_layer_z)
-        # len_to_prune_heads = len(to_prune_heads)
-        # if len_to_prune_heads == 0:
-        #     print(f"    Heads: {self.n_heads} -> {self.n_heads}")
-        #     return
+        to_prune_heads = turn_head_z(head_z, head_layer_z)
+        len_to_prune_heads = len(to_prune_heads)
+        if len_to_prune_heads == 0:
+            print(f"    Heads: {self.n_heads} -> {self.n_heads}")
+            return
 
-        # heads, index = find_pruneable_heads_and_indices(
-        #     to_prune_heads, self.n_heads, self.head_dim, self.pruned_heads
-        # )
+        heads, index = find_pruneable_heads_and_indices(
+            to_prune_heads, self.n_heads, self.head_dim, self.pruned_heads
+        )
 
         # Prune linear layers
         # setting layers to be None if all the heads are pruned
         if len(index) == 0:
             self.query_key_value = None
             self.out_proj = None
-        # else:
-        #     half = next(self.query_key_value.parameters()).dtype == torch.float16
-        #     remaining_heads = list(
-        #         set([i for i in range(self.n_heads)]) - set(to_prune_heads)
-        #     )
-        #     qkv_index = torch.cat(
-        #         [
-        #             torch.arange(i * self.head_dim * 3, (i + 1) * self.head_dim * 3).to(
-        #                 index.device
-        #             )
-        #             for i in remaining_heads
-        #         ]
-        #     )
+        else:
+            half = next(self.query_key_value.parameters()).dtype == torch.float16
+            remaining_heads = list(
+                set([i for i in range(self.n_heads)]) - set(to_prune_heads)
+            )
+            qkv_index = torch.cat(
+                [
+                    torch.arange(i * self.head_dim * 3, (i + 1) * self.head_dim * 3).to(
+                        index.device
+                    )
+                    for i in remaining_heads
+                ]
+            )
 
-        #     self.query_key_value = prune_linear_layer(self.query_key_value, qkv_index)
-        #     self.out_proj = prune_linear_layer(self.out_proj, index, dim=1)
-        #     if half:
-        #         self.query_key_value.half()
-        #         self.out_proj.half()
+            self.query_key_value = prune_linear_layer(self.query_key_value, qkv_index)
+            self.out_proj = prune_linear_layer(self.out_proj, index, dim=1)
+            if half:
+                self.query_key_value.half()
+                self.out_proj.half()
 
-        # print(f"    Heads: {self.n_heads} -> {self.n_heads - len(heads)}")
+        print(f"    Heads: {self.n_heads} -> {self.n_heads - len(heads)}")
 
-        # self.n_heads = self.n_heads - len(heads)
-        # self.pruned_heads = self.pruned_heads.union(heads)
+        self.n_heads = self.n_heads - len(heads)
+        self.pruned_heads = self.pruned_heads.union(heads)
 
     def forward(
         self,
@@ -564,9 +564,9 @@ class PythiaAttention(nn.Module):
             # TODO: remove this hack
             # For some reason, query and key are in float32 (value is float16)
             # This is not required when FSDP is used (for some reason)
-            query = query.half()
-            key = key.half()
-            value = value.half()
+            query = query.bfloat16()
+            key = key.bfloat16()
+            value = value.bfloat16()
 
             context, attn_weights = self.attn_fn(
                 query,
