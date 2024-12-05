@@ -11,11 +11,13 @@ from llmshearing.models.composer_llama import (
     flash_attn_fn,
     prepare_decoder_attention_mask,
     turn_mlp_z,
+    turn_head_z
 )
 from omegaconf import DictConfig
 from typing import List, Optional, Tuple
 from llmshearing.models.l0_module import L0Module
 from transformers.pytorch_utils import (
+    find_pruneable_heads_and_indices,
     prune_linear_layer,
 )
 import torch.nn.functional as F
@@ -305,8 +307,137 @@ class QwenAttention(nn.Module):
         )
 
     def prune_params(self, zs_block):
-        # TODO
-        pass
+        head_z = None
+        head_layer_z = None
+        hidden_z = None
+        qk_head_dim_z = None
+        vo_head_dim_z = None
+
+        # TODO: implement head pruning
+        if "head_z" in zs_block:
+            head_z = zs_block["head_z"].squeeze()
+            print(head_z)
+
+        if "head_layer_z" in zs_block:
+            head_layer_z = zs_block["head_layer_z"].squeeze()
+
+        if "hidden_z" in zs_block:
+            hidden_z = zs_block["hidden_z"].squeeze()
+
+        if "qk_head_dim_z" in zs_block:
+            qk_head_dim_z = zs_block[
+                "qk_head_dim_z"
+            ].squeeze()  # qk_head_dim is the same as hidden_z
+            vo_head_dim_z = zs_block[
+                "vo_head_dim_z"
+            ].squeeze()  # vo_head_dim is the same as hidden_z
+
+        # update params #
+        # if head_z is not None:
+        #     head_z_for_update = torch.repeat_interleave(head_z, self.head_dim)
+        #     self.wv.weight.data = (
+        #         self.wv.weight.data.transpose(0, 1)
+        #         .mul(head_z_for_update)
+        #         .transpose(0, 1)
+        #     )
+        if head_layer_z is not None:
+            self.out_proj.weight.data = (
+                self.out_proj.weight.data.transpose(0, 1)
+                .mul(head_layer_z)
+                .transpose(0, 1)
+            )
+        if hidden_z is not None:
+            self.out_proj.weight.data = (
+                self.out_proj.weight.data.transpose(0, 1).mul(hidden_z).transpose(0, 1)
+            )
+        if qk_head_dim_z is not None:
+            self.wq.weight.data = (
+                self.wq.weight.data.transpose(0, 1).mul(qk_head_dim_z).transpose(0, 1)
+            )
+            self.wv.weight.data = (
+                self.wv.weight.data.transpose(0, 1).mul(vo_head_dim_z).transpose(0, 1)
+            )
+        #################
+
+        if hidden_z is not None:
+            remaining_index = torch.where(~hidden_z.eq(0))[0]
+            print(f"    Head hidden: {len(hidden_z)} -> {len(remaining_index)}")
+            half = next(self.wq.parameters()).dtype == torch.float16
+            self.wk = prune_linear_layer(self.wk, remaining_index, dim=1)
+            self.wq = prune_linear_layer(self.wq, remaining_index, dim=1)
+            self.wv = prune_linear_layer(self.wv, remaining_index, dim=1)
+            self.out_proj = prune_linear_layer(self.out_proj, remaining_index)
+            if half:
+                self.wq.half()
+                self.wk.half()
+                self.wv.half()
+                self.out_proj.half()
+
+        to_prune_heads = turn_head_z(head_z, head_layer_z)
+        len_to_prune_heads = len(to_prune_heads)
+        if len_to_prune_heads == 0:
+            print(f"    Heads: {self.n_heads} -> {self.n_heads}")
+            return
+
+        heads, index = find_pruneable_heads_and_indices(
+            to_prune_heads, self.n_heads, self.head_dim, self.pruned_heads
+        )
+
+        qk_index = index
+        vo_index = index
+        if qk_head_dim_z is not None:
+            remaining_qk_index = torch.where(~qk_head_dim_z.eq(0))[0]
+            remaining_vo_index = torch.where(~vo_head_dim_z.eq(0))[0]
+            import numpy as np
+
+            qk_index = (
+                torch.from_numpy(
+                    np.intersect1d(
+                        index.detach().cpu().numpy(),
+                        remaining_qk_index.detach().cpu().numpy(),
+                    )
+                )
+                .to(index.device)
+                .to(index.dtype)
+            )
+            vo_index = (
+                torch.from_numpy(
+                    np.intersect1d(
+                        index.detach().cpu().numpy(),
+                        remaining_vo_index.detach().cpu().numpy(),
+                    )
+                )
+                .to(index.device)
+                .to(index.dtype)
+            )
+            print(f"    QKVO dims: {len(hidden_z)} -> {len(qk_index)}")
+
+        # Prune linear layers
+        # setting layers to be None if all the heads are pruned
+        if len(index) == 0:
+            self.wq = None
+            self.wk = None
+            self.wv = None
+            self.out_proj = None
+        else:
+            print("Non-zero heads: ", len(index))
+            half = next(self.wq.parameters()).dtype == torch.float16
+            self.wq = prune_linear_layer(self.wq, qk_index)
+            self.wk = prune_linear_layer(self.wk, qk_index)
+            self.wv = prune_linear_layer(self.wv, vo_index)
+            self.out_proj = prune_linear_layer(self.out_proj, vo_index, dim=1)
+            if half:
+                self.wq.half()
+                self.wk.half()
+                self.wv.half()
+                self.out_proj.half()
+
+        print(f"    Heads: {self.n_heads} -> {self.n_heads - len(heads)}")
+
+        # Update hyper params and store pruned heads
+        self.n_heads = self.n_heads - len(heads)
+        self.all_head_size = self.head_dim * self.n_heads
+        self.pruned_heads = self.pruned_heads.union(heads)
 
     def forward(
         self,

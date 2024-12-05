@@ -12,15 +12,15 @@ tokenizer_path=${PROJ_DIR}/tokenizers/qwen-tokenizer
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=2
+device_train_microbatch_size=8
 global_train_batch_size=32
-device_eval_batch_size=8
-n_gpus=1
+device_eval_batch_size=16
+n_gpus=4
 
 # learning setup
 lr=1e-4 # learning rate for the main parameters
 max_duration=6400ba # 400M tokens
-save_interval=1600ba # save in the end
+save_interval=400ba # save in the end
 t_warmup=320ba # learning rate warmup (typically set to 10% of max_duration)
 
 # dynamic=True
