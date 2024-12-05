@@ -68,7 +68,7 @@ if [[ $to_model == 6.6m ]]; then
 elif [[ $to_model == 14m ]]; then
     target_d_model=128; target_n_heads=4; target_n_layers=6; target_intermediate_size=512
 elif [[ $to_model == 70m ]]; then
-    target_d_model=512; target_n_heads=6; target_n_layers=8; target_intermediate_size=2048
+    target_d_model=512; target_n_heads=8; target_n_layers=6; target_intermediate_size=2048
 elif [[ $to_model == 160m ]]; then
     target_d_model=768; target_n_heads=12; target_n_layers=12; target_intermediate_size=3072
 elif [[ $to_model == 410m ]]; then
