@@ -17,7 +17,7 @@ image = (
 volume = modal.Volume.from_name("pruning-vol", create_if_missing=True)
 
 
-@app.function(image=image, gpu="A100", volumes={"/pruning-vol": volume})
+@app.function(image=image, gpu="A100", volumes={"/root/pruning-vol": volume})
 def evaluate():
     subprocess.run(
         [
@@ -25,11 +25,11 @@ def evaluate():
             "--model",
             "hf",
             "--model_args",
-            "pretrained=/pruning-vol/models/pythia_160m/hf",
+            "pretrained=/root/pruning-vol/models/pythia_160m/hf",
             "--tasks",
             "lambada",
             "--output_path",
-            "/pruning-vol/evals/pythia_160m/hf",
+            "/root/pruning-vol/evals/pythia_160m/hf",
         ]
     )
 
