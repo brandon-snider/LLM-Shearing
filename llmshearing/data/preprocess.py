@@ -37,10 +37,14 @@ def tokenize(sample):
 
 
 def main():
-    local_dir = "../../data/dclm/pythia/mds"
+    # local_dir = "../../data/dclm/pythia/mds"
+    # local_dir = "../../data/opc-fineweb-code-corpus/pythia/mds"
+    # local_dir = "../../data/opc-annealing-1.75B/pythia/algorithmic_corpus/mds"
+    # local_dir = "../../data/opc-annealing-1.75B/pythia/synthetic_code_snippet/mds"
+    local_dir = "../../data/opc-annealing-1.75B/pythia/synthetic_qa/mds"
     seq_length = 2048
-    eval_size = int(10e6)  # 7M tokens for eval set
-    total_size = int(5e9)  # 5B tokens
+    eval_size = int(0.14e6)  # 0.14M tokens for eval set
+    total_size = int(0.07e9)  # 0.07B tokens
     tokens_collected = 0
     eval_tokens_collected = 0
 
@@ -62,14 +66,20 @@ def main():
 
     print("Initializing dataset")
     ds = load_dataset(
-        "mlfoundations/dclm-baseline-1.0",
-        # "OpenCoder-LLM/opc-annealing-corpus",
-        # "synthetic_qa",  # "algorithmic_corpus" or "synthetic_code_snippet" or "synthetic_qa" 1B, 170M, 56M
+        # "mlfoundations/dclm-baseline-1.0",
+        # "OpenCoder-LLM/opc-fineweb-code-corpus",
+        "OpenCoder-LLM/opc-annealing-corpus",
+        # "algorithmic_corpus",  # "algorithmic_corpus" or "synthetic_code_snippet" or "synthetic_qa" 1.45B (2.9M), 0.23B (0.46M), 0.07B (0.14M)
+        # "synthetic_code_snippet",
+        "synthetic_qa",
         split="train",
-        # num_proc=32,
+        # num_proc=os.cpu_count(),
         # data_files="synthetic_qa/*.arrow",
         streaming=True,
     )
+    #
+    # print("Done.")
+    # return
 
     ds = ds.shuffle(seed=42, buffer_size=10000)  # When streaming
     # ds = ds.shuffle(seed=42)  # When not streaming

@@ -1,20 +1,20 @@
 PROJ_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../../ && pwd )"
 
 TRAIN_SCRIPT=${PROJ_DIR}/llmshearing/train.py
-DATA_DIR=${PROJ_DIR}/data/opencoder-annealing/pythia/for_prune_merged
-OUTPUT_DIR=${PROJ_DIR}/out/prune_pythia
-MODEL_PATH=${PROJ_DIR}/models/pythia-160m-composer # Used to load the pretrianed weights
+DATA_DIR=${PROJ_DIR}/data/for_prune/dclm_5b/pythia/mds
+OUTPUT_DIR=${PROJ_DIR}/out/prune_pythia_general
+MODEL_PATH=${PROJ_DIR}/models/pythia-410m-composer # Used to load the pretrianed weights
 
-from_model=160m # source model size
-to_model=70m # target model size
+from_model=410m # source model size
+to_model=160m # target model size
 config_file=${PROJ_DIR}/llmshearing/configs/pythia/${from_model}.yaml
 path=$MODEL_PATH/state_dict.pt
 
 # basic setup
 max_seq_len=2048
-device_train_microbatch_size=8
+device_train_microbatch_size=16
 global_train_batch_size=32
-device_eval_batch_size=16
+device_eval_batch_size=32
 n_gpus=1
 
 # learning setup
@@ -31,7 +31,7 @@ dynamic=False
 set_names=[train]
 proportion=[1.0]
 
-dataset_name=opencoder-annealing
+dataset_name=dclm_5b
 train_split_name=train
 eval_split_name=eval # eval on all domains
 eval_target_model=false # evaluate on the current model, not the target model, otherwise the loss will be inaccurate
